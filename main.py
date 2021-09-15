@@ -2,6 +2,20 @@ import firebase_admin
 from firebase_admin import db
 import datetime
 from dotenv import dotenv_values
+import cv2
+from pyzbar import pyzbar
+
+
+def read_barcodes(frame):
+    barcodes = pyzbar.decode(frame)
+    for barcode in barcodes:
+        x, y , w, h = barcode.rect
+        barcode_info = barcode.data.decode('utf-8')
+        cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
+        with open("barcode_result.txt", mode ='w') as file:
+            file.write("Recognized Barcode:" + barcode_info)
+    return frame
+
 
 class FirebaseApi:
     def __init__(self, credFilePath, databaseUrl, locationId):
@@ -38,3 +52,15 @@ class FirebaseApi:
 
 config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'], config['db_url'], config['location_id'])
+def camera():
+    camera = cv2.VideoCapture(0)
+    ret, frame = camera.read()
+    while ret:
+        ret, frame = camera.read()
+        frame = read_barcodes(frame)
+        cv2.imshow('Barcode', frame)
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+    camera.release()
+    cv2.destroyAllWindows()
+camera()
