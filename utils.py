@@ -5,15 +5,15 @@ import cv2
 from pyzbar import pyzbar
 import numpy
 
+
 class FirebaseApi:
     def __init__(self, credFilePath, databaseUrl, locationId):
         cred_obj = firebase_admin.credentials.Certificate(credFilePath)
         firebase_admin.initialize_app(cred_obj, {
-	        'databaseURL': databaseUrl
-    	})
+            'databaseURL': databaseUrl
+        })
         self.locationId = locationId
         self.ref = db.reference('/database/checkedOut')
-
 
     def checkOut(self, userId, cupId):
         contents = self.ref.get()
@@ -32,70 +32,76 @@ class FirebaseApi:
         })
         print("success")
 
-    def returnItem(self, cupId, abandoned = False):
+    def returnItem(self, cupId, abandoned=False):
         for key, item in self.ref.get().items():
             if item['cupId'] == cupId and not item['returned']:
-                self.ref.child(key).update({'returned': True, 'abandoned': abandoned})
+                self.ref.child(key).update(
+                    {'returned': True, 'abandoned': abandoned})
                 return
         print("no item wth id")
+
 
 def decode_fourcc(v):
     v = int(v)
     return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
 
+
 def setfourccmjpg(cap):
     oldfourcc = decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC))
     codec = cv2.VideoWriter_fourcc(*'MJPG')
-    res=cap.set(cv2.CAP_PROP_FOURCC,codec)
+    res = cap.set(cv2.CAP_PROP_FOURCC, codec)
     if res:
-        print("codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
+        print("codec in ", decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
     else:
-        print("error, codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
-	
-def Detect(Detecttype, frame):
-    if Detecttype == "QR":
-    	qr = pyzbar.decode(frame)
-    	for qr in qrs:
-		if qr.type == "QRCODE":
-        		x, y , w, h = qr.rect
-        		qr_info = qr.data.decode('utf-8')
-        		print(qr_info)
-        		cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
-        		with open("qre_result.txt", mode ='w') as file:
-        		    file.write("Recognized Barcode:" + qr_info)
-        		if qr_info:
-        		    frame = qr_info
-			
-    	return frame
-    if Detecttype == "Barcode":
-    	barcodes = pyzbar.decode(frame)
+        print("error, codec in ", decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
 
-    	for barcode in barcodes:
-		if barcode.type == "CODE39":
-        		x, y , w, h = barcode.rect
-        		barcode_info = barcode.data.decode('utf-8')
-        		print(barcode_info)
-        		cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
-        		with open("barcode_result.txt", mode ='w') as file:
-        		    file.write("Recognized Barcode:" + barcode_info)
-        		if barcode_info:
-        		    frame = barcode_info
-	    return frame
 
-def camera(Detecttype):
+def detect(detectType, frame):
+    if detectType == "QR":
+        qrs = pyzbar.decode(frame)
+        for qr in qrs:
+            if qr.type == "QRCODE":
+                x, y, w, h = qr.rect
+                qr_info = qr.data.decode('utf-8')
+                print(qr_info)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                with open("qre_result.txt", mode='w') as file:
+                    file.write("Recognized Barcode:" + qr_info)
+                if qr_info:
+                    frame = qr_info
+
+        return frame
+    if detectType == "BARCODE":
+        barcodes = pyzbar.decode(frame)
+
+        for barcode in barcodes:
+            if barcode.type == "CODE39":
+                x, y, w, h = barcode.rect
+                barcode_info = barcode.data.decode('utf-8')
+                print(barcode_info)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                with open("barcode_result.txt", mode='w') as file:
+                    file.write("Recognized Barcode:" + barcode_info)
+                if barcode_info:
+                    frame = barcode_info
+        return frame
+
+
+def camera(detectType):
     camera = cv2.VideoCapture(0)
-    w=19200
-    h=1080
-    fps=100000
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH,w)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
-    camera.set(cv2.CAP_PROP_FPS,fps)
+    w = 19200
+    h = 1080
+    fps = 100000
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+    camera.set(cv2.CAP_PROP_FPS, fps)
     ret, frame = camera.read()
     while ret:
         ret, frame = camera.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        _, frame = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame = Detect(Detecttype, frame)
+        _, frame = cv2.threshold(
+            frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        frame = detect(detectType, frame)
         if type(frame) != numpy.ndarray:
             return frame
         cv2.imshow('Barcode', frame)
