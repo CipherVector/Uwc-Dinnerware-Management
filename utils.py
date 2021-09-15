@@ -52,40 +52,37 @@ def setfourccmjpg(cap):
     else:
         print("error, codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
 	
-def read_barcodes(frame):
-    barcodes = pyzbar.decode(frame)
+def Detect(Detecttype, frame):
+    if Detecttype == "QR":
+    	qr = pyzbar.decode(frame)
+    	for qr in qrs:
+		if qr.type == "QRCODE":
+        		x, y , w, h = qr.rect
+        		qr_info = qr.data.decode('utf-8')
+        		print(qr_info)
+        		cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
+        		with open("qre_result.txt", mode ='w') as file:
+        		    file.write("Recognized Barcode:" + qr_info)
+        		if qr_info:
+        		    frame = qr_info
+			
+    	return frame
+    if Detecttype == "Barcode":
+    	barcodes = pyzbar.decode(frame)
 
-    for barcode in barcodes:
-	if barcode.type == "CODE39":
-        	x, y , w, h = barcode.rect
-        	barcode_info = barcode.data.decode('utf-8')
-        	print(barcode_info)
-        	cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
-        	with open("barcode_result.txt", mode ='w') as file:
-        	    file.write("Recognized Barcode:" + barcode_info)
-        	if barcode_info:
-        	    frame = barcode_info
-	else:
-		frame = "notBarcode"
-    return frame
-def read_qr(frame):
-    qr = pyzbar.decode(frame)
-    
-    for qr in qrs:
-	if qr.type == "QRCODE":
-        	x, y , w, h = qr.rect
-        	qr_info = qr.data.decode('utf-8')
-        	print(qr_info)
-        	cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
-        	with open("qre_result.txt", mode ='w') as file:
-        	    file.write("Recognized Barcode:" + qr_info)
-        	if qr_info:
-        	    frame = qr_info
-	else:
-		frame = "notQR"
-    return frame
+    	for barcode in barcodes:
+		if barcode.type == "CODE39":
+        		x, y , w, h = barcode.rect
+        		barcode_info = barcode.data.decode('utf-8')
+        		print(barcode_info)
+        		cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
+        		with open("barcode_result.txt", mode ='w') as file:
+        		    file.write("Recognized Barcode:" + barcode_info)
+        		if barcode_info:
+        		    frame = barcode_info
+	    return frame
 
-def cameraBARCODE():
+def camera(Detecttype):
     camera = cv2.VideoCapture(0)
     w=19200
     h=1080
@@ -98,31 +95,10 @@ def cameraBARCODE():
         ret, frame = camera.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         _, frame = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame = read_barcodes(frame)
+        frame = Detect(Detecttype, frame)
         if type(frame) != numpy.ndarray:
             return frame
         cv2.imshow('Barcode', frame)
-        if cv2.waitKey(1) & 0xFF == 27:
-            break
-    camera.release()
-    cv2.destroyAllWindows()
-def cameraQR():
-    camera = cv2.VideoCapture(0)
-    w=19200
-    h=1080
-    fps=100000
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH,w)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
-    camera.set(cv2.CAP_PROP_FPS,fps)
-    ret, frame = camera.read()
-    while ret:
-        ret, frame = camera.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        _, frame = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame = read_qr(frame)
-        if type(frame) != numpy.ndarray:
-            return frame
-        cv2.imshow('Qr', frame)
         if cv2.waitKey(1) & 0xFF == 27:
             break
     camera.release()
