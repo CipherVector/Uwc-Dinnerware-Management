@@ -4,13 +4,23 @@ import datetime
 from dotenv import dotenv_values
 import cv2
 from pyzbar import pyzbar
+from kraken import binarization
+from PIL import Image
+from time import sleep
+import numpy
 
 
 def read_barcodes(frame):
+#     framePIL = Image.fromarray(frame)
+#     framePIL = binarization.nlbin(framePIL)
+#     frame = numpy.array(framePIL)
+#     # frame = frame[:, :, ::-1].copy() 
     barcodes = pyzbar.decode(frame)
     for barcode in barcodes:
+        print("test")
         x, y , w, h = barcode.rect
         barcode_info = barcode.data.decode('utf-8')
+        print(barcode_info)
         cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
         with open("barcode_result.txt", mode ='w') as file:
             file.write("Recognized Barcode:" + barcode_info)
@@ -54,9 +64,12 @@ config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'], config['db_url'], config['location_id'])
 def camera():
     camera = cv2.VideoCapture(0)
+    camera.set(cv2.CAP_PROP_FPS, 10)
     ret, frame = camera.read()
     while ret:
         ret, frame = camera.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        _, frame = cv2.threshold(frame, 230, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         frame = read_barcodes(frame)
         cv2.imshow('Barcode', frame)
         if cv2.waitKey(1) & 0xFF == 27:
