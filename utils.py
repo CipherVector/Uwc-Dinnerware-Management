@@ -30,6 +30,7 @@ class FirebaseApi:
             "cupId": cupId,
             "userId": userId
         })
+        print("success")
 
     def returnItem(self, cupId, abandoned = False):
         for key, item in self.ref.get().items():
