@@ -64,6 +64,20 @@ def read_barcodes(frame):
             frame = barcode_info
     return frame
 
+def read_barcodes_return(frame):
+    barcodes = pyzbar.decode(frame)
+    for barcode in barcodes:
+        x, y , w, h = barcode.rect
+        barcode_info = barcode.data.decode('utf-8')
+        print(barcode_info)
+        cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
+        api.returnItem(barcode_info)
+        with open("barcode_result.txt", mode ='w') as file:
+            file.write("Recognized Barcode:" + barcode_info)
+        if barcode_info:
+            frame = barcode_info
+    return frame
+
 def camera():
     camera = cv2.VideoCapture(0)
     w=19200
