@@ -1,37 +1,9 @@
 import firebase_admin
 from firebase_admin import db
 import datetime
-from dotenv import dotenv_values
 import cv2
 from pyzbar import pyzbar
 import numpy
-
-def decode_fourcc(v):
-    v = int(v)
-    return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
-
-def setfourccmjpg(cap):
-    oldfourcc = decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC))
-    codec = cv2.VideoWriter_fourcc(*'MJPG')
-    res=cap.set(cv2.CAP_PROP_FOURCC,codec)
-    if res:
-        print("codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
-    else:
-        print("error, codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
-	
-def read_barcodes(frame):
-    barcodes = pyzbar.decode(frame)
-    for barcode in barcodes:
-        x, y , w, h = barcode.rect
-        barcode_info = barcode.data.decode('utf-8')
-        print(barcode_info)
-        cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
-        with open("barcode_result.txt", mode ='w') as file:
-            file.write("Recognized Barcode:" + barcode_info)
-        if barcode_info:
-            frame = barcode_info
-    return frame
-
 
 class FirebaseApi:
     def __init__(self, credFilePath, databaseUrl, locationId):
@@ -66,8 +38,32 @@ class FirebaseApi:
                 return
         print("no item wth id")
 
-config = dotenv_values(".env")
-api = FirebaseApi(config['creds_file'], config['db_url'], config['location_id'])
+def decode_fourcc(v):
+    v = int(v)
+    return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
+
+def setfourccmjpg(cap):
+    oldfourcc = decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC))
+    codec = cv2.VideoWriter_fourcc(*'MJPG')
+    res=cap.set(cv2.CAP_PROP_FOURCC,codec)
+    if res:
+        print("codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
+    else:
+        print("error, codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
+	
+def read_barcodes(frame):
+    barcodes = pyzbar.decode(frame)
+    for barcode in barcodes:
+        x, y , w, h = barcode.rect
+        barcode_info = barcode.data.decode('utf-8')
+        print(barcode_info)
+        cv2.rectangle(frame, (x, y),(x+w, y+h), (0, 255, 0), 2)
+        with open("barcode_result.txt", mode ='w') as file:
+            file.write("Recognized Barcode:" + barcode_info)
+        if barcode_info:
+            frame = barcode_info
+    return frame
+
 def camera():
     camera = cv2.VideoCapture(0)
     w=19200
@@ -89,4 +85,3 @@ def camera():
             break
     camera.release()
     cv2.destroyAllWindows()
-camera()
