@@ -5,7 +5,19 @@ from dotenv import dotenv_values
 import cv2
 from pyzbar import pyzbar
 
+def decode_fourcc(v):
+    v = int(v)
+    return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
 
+def setfourccmjpg(cap):
+    oldfourcc = decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC))
+    codec = cv2.VideoWriter_fourcc(*'MJPG')
+    res=cap.set(cv2.CAP_PROP_FOURCC,codec)
+    if res:
+        print("codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
+    else:
+        print("error, codec in ",decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
+	
 def read_barcodes(frame):
     barcodes = pyzbar.decode(frame)
     for barcode in barcodes:
@@ -55,7 +67,13 @@ config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'], config['db_url'], config['location_id'])
 def camera():
     camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FPS, 10)
+    cap = cv2.VideoCapture(0)
+    w=1920
+    h=1080
+    fps=30
+    res1=cap.set(cv2.CAP_PROP_FRAME_WIDTH,w)
+    res2=cap.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
+    res3=cap.set(cv2.CAP_PROP_FPS,fps)
     ret, frame = camera.read()
     while ret:
         ret, frame = camera.read()
