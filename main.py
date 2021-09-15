@@ -9,7 +9,6 @@ from pyzbar import pyzbar
 def read_barcodes(frame):
     barcodes = pyzbar.decode(frame)
     for barcode in barcodes:
-        print("test")
         x, y , w, h = barcode.rect
         barcode_info = barcode.data.decode('utf-8')
         print(barcode_info)
@@ -61,7 +60,7 @@ def camera():
     while ret:
         ret, frame = camera.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        _, frame = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        _, frame = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         frame = read_barcodes(frame)
         cv2.imshow('Barcode', frame)
         if cv2.waitKey(1) & 0xFF == 27:
