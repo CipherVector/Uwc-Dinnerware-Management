@@ -9,6 +9,7 @@ oldUserId = None
 while True:
     if oldUserId:
         userId = oldUserId
+        oldUserId = None
     else:
         userId = camera("BARCODE")
         if not str(userId).isnumeric():
