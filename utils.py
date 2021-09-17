@@ -41,6 +41,20 @@ class FirebaseApi:
         print("no item wth id")
 
 
+    def getcheckedout(self):
+        contents = self.ref.get()
+        for key, item in self.ref.get().items():
+        #for item in contents:
+            #item = contents[item]
+            expiretime = int(datetime.datetime.timestamp(datetime.datetime.now())) + 86400
+            if not item['returned'] and item['abandoned'] == False and item['cupId'] > 1:
+              if expiretime > item['timeCheckedOut']:
+                print("One Cup Abandoned, with cup id:", item['cupId'],"By Wasteful Child with user id:", item['userId'])
+                self.ref.child(key).update(
+                    {'abandoned': True})
+                return
+
+
 def decode_fourcc(v):
     v = int(v)
     return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
