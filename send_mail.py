@@ -9,7 +9,7 @@ from time import sleep
 
 config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'],
-                  config['db_url'], config['location_id'])
+                  config['db_url'])
 
 def emailBadPeople():
     f = open(config['ids_file'])
