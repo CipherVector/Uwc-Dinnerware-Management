@@ -12,7 +12,7 @@ api = FirebaseApi(config['creds_file'],
                   config['db_url'], config['location_id'])
 
 def emailBadPeople():
-    f = open('ids.json')
+    f = open(config['ids_file'])
     j = json.load(f)
     users = api.abandonedItems()
     for key, value in users.items():
