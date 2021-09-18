@@ -52,7 +52,7 @@ The Campus Cup Team
         except Exception as e:
             print(e)
 
-schedule.every().day.at("16:18").do(emailBadPeople)
+schedule.every().day.at("15:00").do(emailBadPeople)
 while True:
     schedule.run_pending()
     sleep(1)
