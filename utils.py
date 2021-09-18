@@ -28,7 +28,8 @@ class FirebaseApi:
             "timeCheckedOut": int(datetime.datetime.timestamp(datetime.datetime.now())),
             "locationId": self.locationId,
             "cupId": cupId,
-            "userId": userId
+            "userId": userId,
+            "email_sent": False
         })
         print("success")
 
@@ -40,19 +41,29 @@ class FirebaseApi:
                 return
         print("no item wth id")
 
-
-    def getcheckedout(self):
-        contents = self.ref.get()
+    def abandonedItems(self):
+        abandonedUserIds = {}
         for key, item in self.ref.get().items():
-        #for item in contents:
-            #item = contents[item]
-            expiretime = int(datetime.datetime.timestamp(datetime.datetime.now())) + 86400
-            if not item['returned'] and item['abandoned'] == False and item['cupId'] > 1:
-              if expiretime > item['timeCheckedOut']:
-                print("One Cup Abandoned, with cup id:", item['cupId'],"By Wasteful Child with user id:", item['userId'])
-                self.ref.child(key).update(
-                    {'abandoned': True})
-                return
+            expiretime = int(datetime.datetime.timestamp(
+                datetime.datetime.now())) + 60 * 60 * 24
+            if (not item['returned'] and item['abandoned'] == False) or (item['email_sent'] == False and item['abandoned'] == True):
+                if expiretime > item['timeCheckedOut']:
+                    self.ref.child(key).update({'abandoned': True})
+                    if abandonedUserIds.get(item['userId'], None):
+                        abandonedUserIds[item['userId']].append(key)
+                    else:
+                        abandonedUserIds[item['userId']] = [key]
+
+        return abandonedUserIds
+
+    def getAbandoned(self, userId):
+        userId = str(userId)
+        abandoned = []
+        for _, item in self.ref.get().items():
+            if str(item['userId']) == userId and item['abandoned']:
+                abandoned.append(item)
+
+        return abandoned
 
 
 def decode_fourcc(v):
@@ -123,3 +134,19 @@ def camera(detectType):
             break
     camera.release()
     cv2.destroyAllWindows()
+
+
+def make_ordinal(n):
+    '''
+    Convert an integer into its ordinal representation::
+
+        make_ordinal(0)   => '0th'
+        make_ordinal(3)   => '3rd'
+        make_ordinal(122) => '122nd'
+        make_ordinal(213) => '213th'
+    '''
+    n = int(n)
+    suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
+    if 11 <= (n % 100) <= 13:
+        suffix = 'th'
+    return str(n) + suffix
