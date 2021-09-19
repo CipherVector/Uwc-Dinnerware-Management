@@ -7,11 +7,12 @@ import numpy
 
 
 class FirebaseApi:
-    def __init__(self, credFilePath, databaseUrl):
+    def __init__(self, credFilePath, databaseUrl, locationId):
         cred_obj = firebase_admin.credentials.Certificate(credFilePath)
         firebase_admin.initialize_app(cred_obj, {
             'databaseURL': databaseUrl
         })
+        self.locationId = locationId
         self.ref = db.reference('/database/checkedOut')
 
     def checkOut(self, userId, cupId):
@@ -25,6 +26,7 @@ class FirebaseApi:
             "abandoned": False,
             "returned": False,
             "timeCheckedOut": int(datetime.datetime.timestamp(datetime.datetime.now())),
+            "locationId": self.locationId,
             "cupId": cupId,
             "userId": userId,
             "email_sent": False
@@ -62,7 +64,24 @@ class FirebaseApi:
                 abandoned.append(item)
 
         return abandoned
+    def visualize(self):
+        contents = self.ref.get()
+        cupsout = 0
+        cupsin = 0
+        allcupsindb = set()
+        alluniquecupsindb = set()
+        for item in contents:
+            item = contents[item]
 
+            allcupsindb.add(item['cupId'])
+            if not item['returned']:
+                cupsout = cupsout + 1
+        for cups in allcupsindb:
+            if cups not in alluniquecupsindb:
+                alluniquecupsindb.add(cups)
+        totalcups = len(alluniquecupsindb)
+        cupsin = totalcups - cupsout
+        return cupsin, cupsout;
 
 def decode_fourcc(v):
     v = int(v)
