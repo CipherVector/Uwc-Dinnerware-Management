@@ -62,6 +62,7 @@ class FirebaseApi:
                 abandoned.append(item)
 
         return abandoned
+
     def visualize(self):
         contents = self.ref.get()
         cupsout = 0
@@ -79,7 +80,8 @@ class FirebaseApi:
                 alluniquecupsindb.add(cups)
         totalcups = len(alluniquecupsindb)
         cupsin = totalcups - cupsout
-        return cupsin, cupsout;
+        return cupsin, cupsout
+
 
 def decode_fourcc(v):
     v = int(v)

@@ -11,6 +11,7 @@ config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'],
                   config['db_url'])
 
+
 def emailBadPeople():
     f = open(config['ids_file'])
     j = json.load(f)
@@ -24,7 +25,7 @@ def emailBadPeople():
             if item['timeCheckedOut'] < ninetyDays:
                 countAbandoned += 1
         msg = MIMEText(
-            f"""
+            f"""\
 Dear student,
 
 You are recieving this email because you failed to return {"a cup" if len(value) == 1 else "multiple cups"} that you recieved more than 24 hours ago.
@@ -32,7 +33,7 @@ This is the {make_ordinal(countAbandoned)} time that you have failed to return a
 If you fail to return a cups 3 times in 90 days, you will be reprimanded by the school.
 
 Sincerely,
-The Campus Cup Team
+The Campus Cup Team\
         """)
         msg['subject'] = "Failed to return cup"
         msg['From'] = config['email_address']
@@ -51,6 +52,7 @@ The Campus Cup Team
                 api.ref.child(item).update({"email_sent": True})
         except Exception as e:
             print(e)
+
 
 schedule.every().day.at("15:00").do(emailBadPeople)
 while True:

@@ -11,7 +11,7 @@ import plotly.express as px
 
 config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'],
-       config['db_url'], config['location_id'])
+       config['db_url'])
 
 
 cupsin, cupsout = api.visualize()
