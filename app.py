@@ -24,13 +24,13 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/chart1')
+@app.route('/chart')
 def chart1():
+    cupsin, cupsout = api.visualize()
     df = pd.DataFrame({
         "Cups": ["Cupin", "Cupsout"],
         "Amount": [cupsin, cupsout],
     })
-
     fig = px.bar(df, x="Cups", y="Amount", barmode="group")
 
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -43,3 +43,12 @@ def chart1():
 @app.route('/leaderboard')
 def leaderboard():
     return render_template('leaderboard.html')
+
+@app.route('/style.css')
+def style():
+    return render_template('style.css')
+
+@app.route('/script.js')
+def script():
+    return render_template('script.js')
+
