@@ -19,7 +19,7 @@ def emailBadPeople():
     for key, value in users.items():
         abandoned = api.getAbandoned(key)
         ninetyDays = int(datetime.datetime.timestamp(
-            datetime.datetime.now())) + 1 * 60 * 60 * 24 * 90
+            datetime.datetime.now())) + 1
         countAbandoned = 0
         for item in abandoned:
             if item['timeCheckedOut'] < ninetyDays:
@@ -56,5 +56,6 @@ The Campus Cup Team\
 
 schedule.every().day.at("15:00").do(emailBadPeople)
 while True:
+    emailBadPeople()
     schedule.run_pending()
     sleep(1)

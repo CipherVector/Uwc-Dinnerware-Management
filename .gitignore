@@ -146,3 +146,4 @@ coc-settings.json
 barcode_result.txt
 
 ids.json
+.DS_Store

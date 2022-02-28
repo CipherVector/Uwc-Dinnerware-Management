@@ -4,17 +4,17 @@ from dotenv import dotenv_values
 config = dotenv_values(".env")
 api = FirebaseApi(config['creds_file'],
                   config['db_url'])
-oldUserId = None
+oldUserId = 59250
 
 while True:
     if oldUserId:
         userId = oldUserId
-        oldUserId = None
-    else:
-        userId = camera("BARCODE")
-        if not str(userId).isnumeric():
-            print("something went wrong. wrong user id scanned")
-            continue
+    #     oldUserId = None
+    # else:
+    #     userId = camera("BARCODE")
+    #     if not str(userId).isnumeric():
+    #         print("something went wrong. wrong user id scanned")
+    #         continue
 
     itemId = camera("QR")
     if not str(itemId).isnumeric():

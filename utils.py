@@ -2,6 +2,9 @@ import firebase_admin
 from firebase_admin import db
 import datetime
 import cv2
+# from picamera.array import PiRGBArray
+# from picamera import PiCamera
+import time
 from pyzbar import pyzbar
 import numpy
 
@@ -16,6 +19,7 @@ class FirebaseApi:
 
     def checkOut(self, userId, cupId):
         contents = self.ref.get()
+        print(contents)
         for item in contents:
             item = contents[item]
             if not item['returned'] and item['cupId'] == cupId:
@@ -107,49 +111,55 @@ def detect(detectType, frame):
                 qr_info = qr.data.decode('utf-8')
                 print(qr_info)
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                with open("qre_result.txt", mode='w') as file:
-                    file.write("Recognized Barcode:" + qr_info)
+                # with open("qre_result.txt", mode='w') as file:
+                #     file.write("Recognized Barcode:" + qr_info)
                 if qr_info:
                     frame = qr_info
-
-        return frame
     if detectType == "BARCODE":
         barcodes = pyzbar.decode(frame)
-
         for barcode in barcodes:
             if barcode.type == "CODE39":
                 x, y, w, h = barcode.rect
                 barcode_info = barcode.data.decode('utf-8')
                 print(barcode_info)
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                with open("barcode_result.txt", mode='w') as file:
-                    file.write("Recognized Barcode:" + barcode_info)
+                # with open("barcode_result.txt", mode='w') as file:
+                #     file.write("Recognized Barcode:" + barcode_info)
                 if barcode_info:
                     frame = barcode_info
-        return frame
-
+    return frame
 
 def camera(detectType):
-    camera = cv2.VideoCapture(0)
-    w = 19200
+    # camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    w = 1920
     h = 1080
-    fps = 100000
+    fps = 30
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, w)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
     camera.set(cv2.CAP_PROP_FPS, fps)
     ret, frame = camera.read()
+    # camera = PiCamera()
+    # raw_capture = PiRGBArray(camera)
+    # time.sleep(0.1)
+    # camera.capture(raw_capture, format="bgr")
+    # image = raw_capture.array
     while ret:
         ret, frame = camera.read()
+        # camera.capture(raw_capture, format="bgr")
+        # image = raw_capture.array
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         _, frame = cv2.threshold(
             frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         frame = detect(detectType, frame)
         if type(frame) != numpy.ndarray:
+            print(str(frame))
             return frame
-        cv2.imshow('Barcode', frame)
+        # cv2.imshow('Barcode', frame)
         if cv2.waitKey(1) & 0xFF == 27:
             break
-    camera.release()
+        time.sleep(0.1)
+    # camera.release()
     cv2.destroyAllWindows()
 
 
