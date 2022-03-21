@@ -21,6 +21,7 @@ def emailBadPeople():
         ninetyDays = int(datetime.datetime.timestamp(
             datetime.datetime.now())) + 1
         countAbandoned = 0
+        #TODO fix the 90 day count, Should we do this? / what period should this be over this
         for item in abandoned:
             if item['timeCheckedOut'] < ninetyDays:
                 countAbandoned += 1
@@ -29,7 +30,7 @@ def emailBadPeople():
 Dear student,
 
 You are recieving this email because you failed to return {"a cup" if len(value) == 1 else "multiple cups"} that you recieved more than 24 hours ago.
-This is the {make_ordinal(countAbandoned)} time that you have failed to return a cup in the last 90 days.
+This is the {make_ordinal(countAbandoned)} time that you have failed to return a cup.
 If you fail to return a cups 3 times in 90 days, you will be reprimanded by the school.
 
 Sincerely,
