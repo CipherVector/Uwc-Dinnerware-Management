@@ -6,7 +6,9 @@ import cv2
 # from picamera import PiCamera
 import time
 from pyzbar import pyzbar
-import numpy
+import numpy as np
+import dbr
+import time
 
 
 class FirebaseApi:
@@ -102,32 +104,55 @@ def setfourccmjpg(cap):
         print("error, codec in ", decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC)))
 
 
-def detect(detectType, frame):
+def detect(detectType, windowName, image, pixel_format):
     if detectType == "QR":
-        qrs = pyzbar.decode(frame)
-        for qr in qrs:
-            if qr.type == "QRCODE":
-                x, y, w, h = qr.rect
-                qr_info = qr.data.decode('utf-8')
-                print(qr_info)
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                # with open("qre_result.txt", mode='w') as file:
-                #     file.write("Recognized Barcode:" + qr_info)
-                if qr_info:
-                    frame = qr_info
+      try:
+          buffer = image.tobytes()
+          height = image.shape[0]
+          width = image.shape[1]
+          stride = image.strides[0]
+          start = time.time()
+          results = reader.decode_buffer_manually(buffer, width, height, stride, pixel_format, "")
+          end = time.time()
+
+
+          if results != None:
+              for result in results:
+                  print("Barcode Format : ")
+                  print(result.barcode_format_string)
+                  print("Barcode Text : ")
+                  print(result.barcode_text)
+                  if (result.barcode_format_string == "QR_CODE"):
+                      if (type(int(result.barcode_text)) == int):
+                          return(result.barcode_text)
+
+      except:
+        print("Error")
+
+ 
     if detectType == "BARCODE":
-        barcodes = pyzbar.decode(frame)
-        for barcode in barcodes:
-            if barcode.type == "CODE39":
-                x, y, w, h = barcode.rect
-                barcode_info = barcode.data.decode('utf-8')
-                print(barcode_info)
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                # with open("barcode_result.txt", mode='w') as file:
-                #     file.write("Recognized Barcode:" + barcode_info)
-                if barcode_info:
-                    frame = barcode_info
-    return frame
+      try:
+          buffer = image.tobytes()
+          height = image.shape[0]
+          width = image.shape[1]
+          stride = image.strides[0]
+          start = time.time()
+          results = reader.decode_buffer_manually(buffer, width, height, stride, pixel_format, "")
+          end = time.time()
+
+
+          if results != None:
+              for result in results:
+                  print("Barcode Format : ")
+                  print(result.barcode_format_string)
+                  print("Barcode Text : ")
+                  print(result.barcode_text)
+                  if (result.barcode_format_string == "BARCODE"):
+                      if (type(int(result.barcode_text)) == int):
+                          return(result.barcode_text)
+
+      except:
+          print("Error")
 
 def camera(detectType):
     # camera = cv2.VideoCapture(0)
